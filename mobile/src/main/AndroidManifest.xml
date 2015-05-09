@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    package="com.aware.plugin.android.wear">
+
+    <application android:allowBackup="true" android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher" android:theme="@style/AppTheme"
+        tools:replace="android:theme,android:icon">
+
+        <service android:name="com.aware.plugin.android.wear.Plugin" android:exported="true" />
+        <service android:name="com.aware.plugin.android.wear.Plugin$WearMessenger" android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.BIND_LISTENER"/>
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

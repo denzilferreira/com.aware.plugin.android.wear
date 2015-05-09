@@ -1,0 +1,108 @@
+package com.aware.plugin.android.wear;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.database.Cursor;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
+
+import com.aware.Aware;
+import com.aware.providers.Battery_Provider;
+import com.aware.ui.Stream_UI;
+import com.aware.utils.IContextCard;
+
+/**
+ * Created by denzil on 30/04/15.
+ */
+public class ContextCard implements IContextCard {
+    public ContextCard(){};
+
+    //Set how often your card needs to refresh if the stream is visible (in milliseconds)
+    private int refresh_interval = 1 * 60 * 1000; //milliseconds -> every 1 minute
+
+    private Handler uiRefresher = new Handler(Looper.getMainLooper());
+    private Runnable uiChanger = new Runnable() {
+        @Override
+        public void run() {
+            //Modify card's content here once it's initialized
+            if( card != null ) {
+                if( Aware.is_watch(sContext) ) {
+                    Cursor last_battery = sContext.getContentResolver().query(Battery_Provider.Battery_Data.CONTENT_URI, null, null, null, Battery_Provider.Battery_Data.TIMESTAMP + " DESC LIMIT 1");
+                    if( last_battery != null && last_battery.moveToFirst() ) {
+                        battery_left.setText("Battery left: " + last_battery.getInt(last_battery.getColumnIndex(Battery_Provider.Battery_Data.LEVEL)) + "%");
+                    }
+                    if( last_battery != null && ! last_battery.isClosed() ) last_battery.close();
+                } else {
+                    Intent sendMsgWatch = new Intent(Plugin.ACTION_AWARE_WEAR_SEND_MESSAGE);
+                    sendMsgWatch.putExtra(Plugin.EXTRA_TOPIC, "/get/data/battery");
+                    sendMsgWatch.putExtra(Plugin.EXTRA_MESSAGE, Battery_Provider.Battery_Data.CONTENT_URI.toString());
+                    sContext.sendBroadcast(sendMsgWatch);
+                }
+            }
+
+            //Reset timer and schedule the next card refresh
+            uiRefresher.postDelayed(uiChanger, refresh_interval);
+        }
+    };
+
+    //You may use sContext on uiChanger to do queries to databases, etc.
+    private Context sContext;
+
+    //Declare here all the UI elements you'll be accessing
+    private View card;
+    private TextView battery_left;
+    private LayoutInflater sInflater;
+
+    @Override
+    public View getContextCard(Context context) {
+        sContext = context;
+
+        //Tell Android that you'll monitor the stream statuses
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Stream_UI.ACTION_AWARE_STREAM_OPEN);
+        filter.addAction(Stream_UI.ACTION_AWARE_STREAM_CLOSED);
+        filter.addAction(Plugin.ACTION_AWARE_WEAR_RECEIVED_MESSAGE);
+        context.registerReceiver(streamObs, filter);
+
+        sInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        card = sInflater.inflate(R.layout.android_wear, null);
+
+        battery_left = (TextView) card.findViewById(R.id.battery_life);
+
+        uiRefresher.post(uiChanger);
+        return card;
+    }
+
+    //This is a BroadcastReceiver that keeps track of stream status. Used to stop the refresh when user leaves the stream and restart again otherwise
+    private StreamObs streamObs = new StreamObs();
+    public class StreamObs extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if( intent.getAction().equals(Stream_UI.ACTION_AWARE_STREAM_OPEN) ) {
+                //start refreshing when user enters the stream
+                uiRefresher.postDelayed(uiChanger, refresh_interval);
+            }
+            if( intent.getAction().equals(Stream_UI.ACTION_AWARE_STREAM_CLOSED) ) {
+                //stop refreshing when user leaves the stream
+                uiRefresher.removeCallbacks(uiChanger);
+                uiRefresher.removeCallbacksAndMessages(null);
+            }
+            if( intent.getAction().equals(Plugin.ACTION_AWARE_WEAR_RECEIVED_MESSAGE) ) {
+                String topic = intent.getStringExtra(Plugin.EXTRA_TOPIC);
+                String message = intent.getStringExtra(Plugin.EXTRA_MESSAGE);
+
+                Log.d(Plugin.TAG, "Received " + message + " in " + topic);
+
+                if( ! Aware.is_watch(context) && battery_left != null ) {
+                    battery_left.setText("Battery left: " + message + "%");
+                }
+            }
+        }
+    }
+}
