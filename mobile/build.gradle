@@ -28,7 +28,7 @@ android {
             minSdkVersion 21
         }
         phone {
-            minSdkVersion 10
+            minSdkVersion 11
         }
     }
 }
@@ -38,7 +38,7 @@ dependencies {
 
     compile 'com.android.support:appcompat-v7:22.1.1'
     compile 'com.android.support:cardview-v7:22.0.0'
-    compile 'com.awareframework:aware-core:3.3.4@aar'
+    compile 'com.awareframework:aware-core:3.3.5@aar'
 
     phoneCompile 'com.google.android.gms:play-services:7.3.0'
 
