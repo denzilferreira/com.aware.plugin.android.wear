@@ -2,8 +2,10 @@
     package="com.aware.plugin.android.wear">
 
     <application android:allowBackup="true" android:label="@string/app_name"
-        android:icon="@mipmap/ic_launcher" android:theme="@style/AppTheme"
+        android:icon="@mipmap/ic_launcher" android:theme="@style/Theme.Aware"
         tools:replace="android:theme,android:icon">
+
+        <activity android:name="com.aware.plugin.android.wear.Settings" android:exported="true" android:theme="@style/Theme.Aware"/>
 
         <service android:name="com.aware.plugin.android.wear.Plugin" android:exported="true" />
         <service android:name="com.aware.plugin.android.wear.Plugin$WearMessenger" android:exported="true">
@@ -11,6 +13,7 @@
                 <action android:name="com.google.android.gms.wearable.BIND_LISTENER"/>
             </intent-filter>
         </service>
+
         <receiver android:name="com.aware.utils.WearClient$AndroidWearHTTPClient" android:exported="true" android:enabled="false">
             <intent-filter>
                 <action android:name="ACTION_AWARE_ANDROID_WEAR_HTTP_GET"/>

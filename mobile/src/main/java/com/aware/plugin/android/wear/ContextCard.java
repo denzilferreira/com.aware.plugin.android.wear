@@ -47,6 +47,8 @@ public class ContextCard implements IContextCard {
 
                 } else {
 
+                    battery_left.setText("Battery left: updating...");
+
                     //Ask watch for the latest information on the battery level
                     Intent sendMsgWatch = new Intent(Plugin.ACTION_AWARE_WEAR_SEND_MESSAGE);
                     sendMsgWatch.putExtra(Plugin.EXTRA_TOPIC, Plugin.TOPIC_GET_DATA);
@@ -115,13 +117,12 @@ public class ContextCard implements IContextCard {
             }
 
             if( intent.getAction().equals(Plugin.ACTION_AWARE_WEAR_RECEIVED_MESSAGE) ) {
-
                 String topic = intent.getStringExtra(Plugin.EXTRA_TOPIC);
                 String message = intent.getStringExtra(Plugin.EXTRA_MESSAGE);
 
                 if( Aware.DEBUG ) Log.d(Plugin.TAG, "Received " + message + " in " + topic);
 
-                if( message != null && message.length() > 0 && message.contains("battery_level") && message.charAt(0) == '[' ) {
+                if( message != null && message.length() > 0 && message.contains("battery_level") ) {
                     try {
                         JSONArray data = new JSONArray(message);
                         if( ! Aware.is_watch(context) && battery_left != null ) {
