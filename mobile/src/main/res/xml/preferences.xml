@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="plugin_android_wear"
+    android:title="Android Wear">
+
+    <!-- Show AWARE Toolbar -->
+    <com.aware.ui.Aware_Toolbar android:key="plugin_android_wear" android:title="Android Wear"/>
+
     <CheckBoxPreference
         android:key="status_plugin_android_wear"
         android:defaultValue="false"

@@ -12,6 +12,7 @@ import android.util.Log;
 import com.aware.Aware;
 import com.aware.Aware_Preferences;
 import com.aware.utils.Aware_Plugin;
+import com.aware.utils.DatabaseHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -101,11 +102,14 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
         registerReceiver(wearListener, wearFilter);
 
         if( Aware.is_watch(this) ) {
-            Aware.setSetting(this, Aware_Preferences.STATUS_BATTERY, true);
+            Aware.setSetting( this, Aware_Preferences.STATUS_BATTERY, true );
         }
 
         Aware.setSetting(this, Settings.STATUS_PLUGIN_ANDROID_WEAR, true);
-        Aware.startPlugin(this, getPackageName());
+
+        sendBroadcast( new Intent(Aware.ACTION_AWARE_REFRESH) ); //apply settings now
+
+        Aware.startPlugin(this, getPackageName()); //set plugin as active
     }
 
     @Override
@@ -114,23 +118,6 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
         DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
 
         googleClient.connect();
-
-        //fetch connected peers
-        PendingResult<NodeApi.GetConnectedNodesResult> nodes = Wearable.NodeApi.getConnectedNodes(googleClient);
-        nodes.setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
-            @Override
-            public void onResult(NodeApi.GetConnectedNodesResult result) {
-                if (result.getNodes().size() > 0) {
-                    for (Node p : result.getNodes()) {
-                        if (!p.getDisplayName().equals("cloud")) {
-                            peer = p;
-                            break;
-                        }
-                    }
-                    if (DEBUG) Log.d(TAG, "Connected to " + peer.getDisplayName());
-                }
-            }
-        });
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -141,16 +128,17 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
     public static class WearMessageListener extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+
+            if( peer == null ) return;
+
             if( intent.getAction().equals(ACTION_AWARE_WEAR_SEND_MESSAGE) ) {
                 String topic = intent.getStringExtra(EXTRA_TOPIC);
                 String message = intent.getStringExtra(EXTRA_MESSAGE);
-                if( message != null && topic != null && peer != null ) {
+                if( message != null && topic != null ) {
                     if( DEBUG ) {
                         Log.d(TAG, "Sending " + message + " to " + topic);
                     }
                     Wearable.MessageApi.sendMessage(googleClient, peer.getId(), topic, message.getBytes());
-                } else {
-                    Log.d(TAG, "Not connected. Failed to send " + message + " to " + topic);
                 }
             }
         }
@@ -167,7 +155,7 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
                     JSONObject query = new JSONObject(new String(messageEvent.getData()));
                     Cursor requestedData = getContentResolver().query(Uri.parse(query.getString(DB_CONTENT_URI)), new String[]{query.optString(DB_COLUMNS)}, query.optString(DB_WHERE), null, query.optString(DB_SORT));
                     if( requestedData != null ) {
-                        String result = cursorToString(requestedData);
+                        String result = DatabaseHelper.cursorToString(requestedData);
 
                         //Ask the message to be send back to the phone
                         Intent sendMessage = new Intent(ACTION_AWARE_WEAR_SEND_MESSAGE);
@@ -199,32 +187,6 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
             super.onPeerDisconnected(peer);
             if(Aware.DEBUG) Log.d(Aware.TAG, "Disconnected from: " + peer.getDisplayName());
         }
-
-        private String cursorToString(Cursor crs) {
-            JSONArray arr = new JSONArray();
-            crs.moveToFirst();
-            while (!crs.isAfterLast()) {
-                int nColumns = crs.getColumnCount();
-                JSONObject row = new JSONObject();
-                for (int i = 0 ; i < nColumns ; i++) {
-                    String colName = crs.getColumnName(i);
-                    if (colName != null) {
-                        try {
-                            switch (crs.getType(i)) {
-                                case Cursor.FIELD_TYPE_BLOB   : row.put(colName, crs.getBlob(i).toString()); break;
-                                case Cursor.FIELD_TYPE_FLOAT  : row.put(colName, crs.getDouble(i))         ; break;
-                                case Cursor.FIELD_TYPE_INTEGER: row.put(colName, crs.getLong(i))           ; break;
-                                case Cursor.FIELD_TYPE_NULL   : row.put(colName, null)                     ; break;
-                                case Cursor.FIELD_TYPE_STRING : row.put(colName, crs.getString(i))         ; break;
-                            }
-                        } catch (JSONException e) {}
-                    }
-                }
-                arr.put(row);
-                if (!crs.moveToNext()) break;
-            }
-            return arr.toString();
-        }
     }
 
     @Override
@@ -236,6 +198,7 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
             Aware.setSetting(this, Aware_Preferences.STATUS_BATTERY, false);
             sendBroadcast(new Intent(Aware.ACTION_AWARE_REFRESH));
         }
+
         Aware.setSetting(this, Settings.STATUS_PLUGIN_ANDROID_WEAR, false);
         Aware.stopPlugin(this, getPackageName());
     }
@@ -245,6 +208,20 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
         if( Aware.DEBUG ) {
             Log.d(TAG, "Connected to Google APIs!");
         }
+
+        //fetch connected peer
+        PendingResult<NodeApi.GetConnectedNodesResult> nodes = Wearable.NodeApi.getConnectedNodes(googleClient);
+        nodes.setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
+            @Override
+            public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
+                for( Node n : getConnectedNodesResult.getNodes() ) {
+                    if( n.isNearby() ) {
+                        peer = n;
+                        if (DEBUG) Log.d(TAG, "Connected to " + peer.getDisplayName());
+                    }
+                }
+            }
+        });
     }
 
     @Override

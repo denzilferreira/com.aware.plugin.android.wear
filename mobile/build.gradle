@@ -14,8 +14,8 @@ android {
     defaultConfig {
         applicationId "com.aware.plugin.android.wear"
         targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
     }
     buildTypes {
         release {
@@ -36,14 +36,15 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.android.support:appcompat-v7:22.1.1'
+    compile 'com.android.support:appcompat-v7:22.2.0'
     compile 'com.android.support:cardview-v7:22.0.0'
-    compile 'com.awareframework:aware-core:3.3.5@aar'
 
-    phoneCompile 'com.google.android.gms:play-services:7.3.0'
+    compile 'com.awareframework:aware-core:3.3.9@aar'
+
+    phoneCompile 'com.google.android.gms:play-services:7.5.0'
 
     wearCompile 'com.google.android.support:wearable:1.1.0'
-    wearCompile 'com.google.android.gms:play-services-wearable:7.3.0'
+    wearCompile 'com.google.android.gms:play-services-wearable:7.5.0'
 
     phoneWearApp project(':wear')
 }
