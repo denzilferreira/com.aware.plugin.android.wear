@@ -91,12 +91,6 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
     public void onCreate() {
         super.onCreate();
 
-        googleClient = new GoogleApiClient.Builder(this)
-                .addApi(Wearable.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
         IntentFilter wearFilter = new IntentFilter();
         wearFilter.addAction(Plugin.ACTION_AWARE_WEAR_SEND_MESSAGE);
         registerReceiver(wearListener, wearFilter);
@@ -116,6 +110,12 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
     public int onStartCommand(Intent intent, int flags, int startId) {
         TAG = Aware.getSetting(this, Aware_Preferences.DEBUG_TAG);
         DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
+
+        googleClient = new GoogleApiClient.Builder(this)
+                .addApi(Wearable.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
 
         googleClient.connect();
 
@@ -178,7 +178,6 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
         @Override
         public void onPeerConnected(Node peer) {
             super.onPeerConnected(peer);
-            Plugin.peer = peer;
             if(Aware.DEBUG) Log.d(Aware.TAG, "Connected to: " + peer.getDisplayName());
         }
 
@@ -209,14 +208,14 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
             Log.d(TAG, "Connected to Google APIs!");
         }
 
-        //fetch connected peer
+        //fetch closest connected peer
         PendingResult<NodeApi.GetConnectedNodesResult> nodes = Wearable.NodeApi.getConnectedNodes(googleClient);
         nodes.setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
             @Override
             public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
                 for( Node n : getConnectedNodesResult.getNodes() ) {
-                    if( n.isNearby() ) {
-                        peer = n;
+                    if( n.isNearby() && ! n.getDisplayName().equals("cloud") ) {
+                        Plugin.peer = n;
                         if (DEBUG) Log.d(TAG, "Connected to " + peer.getDisplayName());
                     }
                 }

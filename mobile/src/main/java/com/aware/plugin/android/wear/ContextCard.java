@@ -26,13 +26,14 @@ import org.json.JSONObject;
  * Created by denzil on 30/04/15.
  */
 public class ContextCard implements IContextCard {
-    public ContextCard(){};
+
+    public ContextCard(){}
 
     //Set how often your card needs to refresh if the stream is visible (in milliseconds)
-    private int refresh_interval = 1 * 60 * 1000; //milliseconds -> every 1 minute
+    private int refresh_interval = 30 * 60 * 1000; //milliseconds -> every 30 minutes
 
-    private Handler uiRefresher = new Handler(Looper.getMainLooper());
-    private Runnable uiChanger = new Runnable() {
+    private final Handler uiRefresher = new Handler(Looper.getMainLooper());
+    private final Runnable uiChanger = new Runnable() {
         @Override
         public void run() {
             //Modify card's content here once it's initialized
@@ -122,12 +123,14 @@ public class ContextCard implements IContextCard {
 
                 if( Aware.DEBUG ) Log.d(Plugin.TAG, "Received " + message + " in " + topic);
 
-                if( message != null && message.length() > 0 && message.contains("battery_level") ) {
+                if( message != null && message.length() > 0 ) {
                     try {
                         JSONArray data = new JSONArray(message);
                         if( ! Aware.is_watch(context) && battery_left != null ) {
                             JSONObject last_battery = data.getJSONObject(0);
-                            battery_left.setText("Battery left: " + last_battery.getInt("battery_level") + "%");
+                            if( last_battery != null && battery_left != null ) {
+                                battery_left.setText("Battery left: " + last_battery.getInt("battery_level") + "%");
+                            }
                         }
                     } catch (JSONException e) {}
                 }
