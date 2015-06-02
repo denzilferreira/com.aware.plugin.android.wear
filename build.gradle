@@ -3,10 +3,10 @@
 buildscript {
     repositories {
         jcenter()
-//        mavenCentral()
-//        maven {
-//            url 'https://oss.sonatype.org/content/repositories/releases/'
-//        }
+        mavenCentral()
+        maven {
+            url 'https://oss.sonatype.org/content/repositories/releases/'
+        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.2.3'
@@ -19,9 +19,9 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
-//        mavenCentral()
-//        maven{
-//            url 'https://oss.sonatype.org/content/repositories/releases/'
-//        }
+        mavenCentral()
+        maven{
+            url 'https://oss.sonatype.org/content/repositories/releases/'
+        }
     }
 }

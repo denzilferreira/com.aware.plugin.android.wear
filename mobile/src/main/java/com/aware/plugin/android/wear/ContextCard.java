@@ -128,7 +128,7 @@ public class ContextCard implements IContextCard {
                         JSONArray data = new JSONArray(message);
                         if( ! Aware.is_watch(context) && battery_left != null ) {
                             JSONObject last_battery = data.getJSONObject(0);
-                            if( last_battery != null && battery_left != null ) {
+                            if( last_battery != null && battery_left != null && last_battery.has("battery_level") ) {
                                 battery_left.setText("Battery left: " + last_battery.getInt("battery_level") + "%");
                             }
                         }
