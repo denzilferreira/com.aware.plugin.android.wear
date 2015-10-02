@@ -132,7 +132,9 @@ public class ContextCard implements IContextCard {
                                 battery_left.setText("Battery left: " + last_battery.getInt("battery_level") + "%");
                             }
                         }
-                    } catch (JSONException e) {}
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

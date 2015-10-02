@@ -101,9 +101,13 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
 
         Aware.setSetting(this, Settings.STATUS_PLUGIN_ANDROID_WEAR, true);
 
-        sendBroadcast( new Intent(Aware.ACTION_AWARE_REFRESH) ); //apply settings now
+        googleClient = new GoogleApiClient.Builder(this)
+                .addApiIfAvailable(Wearable.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
 
-        Aware.startPlugin(this, getPackageName()); //set plugin as active
+        Aware.startPlugin(this, "com.aware.plugin.android.wear");
     }
 
     @Override
@@ -111,13 +115,7 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
         TAG = Aware.getSetting(this, Aware_Preferences.DEBUG_TAG);
         DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
 
-        googleClient = new GoogleApiClient.Builder(this)
-                .addApi(Wearable.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
-        googleClient.connect();
+        if( ! googleClient.isConnected() || ! googleClient.isConnecting() ) googleClient.connect();
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -199,7 +197,7 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
         }
 
         Aware.setSetting(this, Settings.STATUS_PLUGIN_ANDROID_WEAR, false);
-        Aware.stopPlugin(this, getPackageName());
+        Aware.stopPlugin(this, "com.aware.plugin.android.wear");
     }
 
     @Override
@@ -232,6 +230,8 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+        if( connectionResult.getErrorCode() == ConnectionResult.API_UNAVAILABLE ) stopSelf();
+
         if( Aware.DEBUG ) {
             Log.d(TAG, "Connection failed to Google APIs!");
         }
