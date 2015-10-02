@@ -4,7 +4,7 @@
     android:title="Android Wear">
 
     <!-- Show AWARE Toolbar -->
-    <com.aware.ui.Aware_Toolbar android:key="plugin_android_wear" android:title="Android Wear"/>
+    <com.aware.ui.Aware_Toolbar android:title="@string/app_name" />
 
     <CheckBoxPreference
         android:key="status_plugin_android_wear"

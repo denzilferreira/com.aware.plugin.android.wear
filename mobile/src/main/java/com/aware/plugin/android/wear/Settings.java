@@ -41,12 +41,12 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
         if( setting.getKey().equals(STATUS_PLUGIN_ANDROID_WEAR)) {
             boolean is_active = sharedPreferences.getBoolean(key, false);
             Aware.setSetting(this, key, is_active);
-            if( is_active ) {
-                Aware.startPlugin(this, getPackageName());
-            } else {
-                Aware.stopPlugin(this, getPackageName());
-            }
             status.setChecked(is_active);
+            if( is_active ) {
+                Aware.startPlugin(this, "com.aware.plugin.android.wear");
+            } else {
+                Aware.stopPlugin(this, "com.aware.plugin.android.wear");
+            }
         }
     }
 }
