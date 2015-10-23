@@ -97,6 +97,7 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
 
         if( Aware.is_watch(this) ) {
             Aware.setSetting( this, Aware_Preferences.STATUS_BATTERY, true );
+            Aware.setSetting( this, Aware_Preferences.STATUS_BATTERY, true, "com.aware");
         }
 
         Aware.setSetting(this, Settings.STATUS_PLUGIN_ANDROID_WEAR, true);
@@ -112,12 +113,14 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        super.onStartCommand(intent, flags, startId);
+
         TAG = Aware.getSetting(this, Aware_Preferences.DEBUG_TAG);
         DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
 
         if( ! googleClient.isConnected() || ! googleClient.isConnecting() ) googleClient.connect();
 
-        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     /**
@@ -193,7 +196,7 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
 
         if( Aware.is_watch(this) ) {
             Aware.setSetting(this, Aware_Preferences.STATUS_BATTERY, false);
-            sendBroadcast(new Intent(Aware.ACTION_AWARE_REFRESH));
+            Aware.setSetting(this, Aware_Preferences.STATUS_BATTERY, false, "com.aware");
         }
 
         Aware.setSetting(this, Settings.STATUS_PLUGIN_ANDROID_WEAR, false);
