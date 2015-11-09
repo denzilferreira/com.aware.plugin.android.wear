@@ -31,6 +31,9 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
         prefs.registerOnSharedPreferenceChangeListener(this);
 
         status = (CheckBoxPreference) findPreference(STATUS_PLUGIN_ANDROID_WEAR);
+        if( Aware.getSetting(this, STATUS_PLUGIN_ANDROID_WEAR).length() == 0 ) {
+            Aware.setSetting(this, STATUS_PLUGIN_ANDROID_WEAR, true); //by default, it's enabled
+        }
         status.setChecked(Aware.getSetting(this, STATUS_PLUGIN_ANDROID_WEAR).equals("true"));
     }
 
@@ -41,12 +44,12 @@ public class Settings extends PreferenceActivity implements SharedPreferences.On
         if( setting.getKey().equals(STATUS_PLUGIN_ANDROID_WEAR)) {
             boolean is_active = sharedPreferences.getBoolean(key, false);
             Aware.setSetting(this, key, is_active);
-            status.setChecked(is_active);
             if( is_active ) {
                 Aware.startPlugin(this, "com.aware.plugin.android.wear");
             } else {
                 Aware.stopPlugin(this, "com.aware.plugin.android.wear");
             }
+            status.setChecked(is_active);
         }
     }
 }

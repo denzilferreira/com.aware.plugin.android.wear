@@ -113,14 +113,13 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        super.onStartCommand(intent, flags, startId);
 
         TAG = Aware.getSetting(this, Aware_Preferences.DEBUG_TAG);
         DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
 
         if( ! googleClient.isConnected() || ! googleClient.isConnecting() ) googleClient.connect();
 
-        return START_STICKY;
+        return super.onStartCommand(intent, flags, startId);
     }
 
     /**
