@@ -117,7 +117,7 @@ public class Plugin extends Aware_Plugin implements GoogleApiClient.ConnectionCa
         TAG = Aware.getSetting(this, Aware_Preferences.DEBUG_TAG);
         DEBUG = Aware.getSetting(this, Aware_Preferences.DEBUG_FLAG).equals("true");
 
-        if( ! googleClient.isConnected() || ! googleClient.isConnecting() ) googleClient.connect();
+        if( googleClient != null && ( ! googleClient.isConnected() || ! googleClient.isConnecting()) ) googleClient.connect();
 
         return super.onStartCommand(intent, flags, startId);
     }
