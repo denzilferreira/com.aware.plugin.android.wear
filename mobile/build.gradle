@@ -44,6 +44,8 @@ dependencies {
     compile 'com.android.support:cardview-v7:23.1.1'
     compile 'com.awareframework:aware-core:3.9.7@aar'
     compile 'com.google.android.gms:play-services-wearable:8.4.0'
+    compile 'com.koushikdutta.ion:ion:2.1.6'
+
     wearCompile 'com.google.android.support:wearable:1.1.0'
 
     phoneWearApp project(':wear')
